@@ -6,7 +6,7 @@ services:
       dockerfile: Dockerfile
       target: deps
     ports:
-      - "3000:3000"
+      - "13204:3000"
     volumes:
       - .:/app
       - /app/node_modules
@@ -23,7 +23,7 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "3000:3000"
+      - "13204:3000"
     environment:
       - NODE_ENV=production
     restart: unless-stopped
