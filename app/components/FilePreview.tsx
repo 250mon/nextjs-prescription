@@ -7,9 +7,10 @@ interface FilePreviewProps {
   file: File | null;
   selectedOverlay: string;
   overlayPosition: { x: number; y: number }; // Now represents percentages (0-100)
+  overlayScale: number; // Scale factor for overlay size
 }
 
-export default function FilePreview({ file, selectedOverlay, overlayPosition }: FilePreviewProps) {
+export default function FilePreview({ file, selectedOverlay, overlayPosition, overlayScale }: FilePreviewProps) {
   const [allOverlays, setAllOverlays] = useState<OverlayOption[]>(overlayOptions);
   const [isDownloading, setIsDownloading] = useState(false);
 
@@ -77,8 +78,8 @@ export default function FilePreview({ file, selectedOverlay, overlayPosition }: 
           const actualX = (overlayPosition.x / 100) * mainImage.width;
           const actualY = (overlayPosition.y / 100) * mainImage.height;
           
-          // Calculate overlay size relative to image size (maintain consistent appearance)
-          const overlaySize = Math.min(mainImage.width, mainImage.height) * 0.05; // 5% of the smaller dimension
+          // Calculate overlay size relative to image size using the scale factor
+          const overlaySize = Math.min(mainImage.width, mainImage.height) * overlayScale;
           
           // Draw overlay at calculated position (centered on the coordinate)
           ctx.globalAlpha = 0.7;
@@ -178,13 +179,17 @@ export default function FilePreview({ file, selectedOverlay, overlayPosition }: 
                       left: `${overlayPosition.x}%`, 
                       top: `${overlayPosition.y}%`,
                       pointerEvents: 'none',
-                      transform: 'translate(-50%, -50%)' // Center the overlay on the position
+                      transform: 'translate(0%, -50%)' // Center the overlay on the position
                     }}
                   >
                     <img 
                       src={allOverlays.find(opt => opt.id === selectedOverlay)?.path}
                       alt="Overlay"
-                      className="w-6 h-6 object-contain opacity-70"
+                      className="object-contain opacity-70"
+                      style={{ 
+                        width: `${Math.max(16, Math.min(64, overlayScale * 800))}px`, 
+                        height: `${Math.max(16, Math.min(64, overlayScale * 800))}px` 
+                      }}
                     />
                   </div>
                 )}
@@ -206,13 +211,17 @@ export default function FilePreview({ file, selectedOverlay, overlayPosition }: 
                       left: `${overlayPosition.x}%`, 
                       top: `${overlayPosition.y}%`,
                       pointerEvents: 'none',
-                      transform: 'translate(-50%, -50%)' // Center the overlay on the position
+                      transform: 'translate(0%, -50%)' // Center the overlay on the position
                     }}
                   >
                     <img 
                       src={allOverlays.find(opt => opt.id === selectedOverlay)?.path}
                       alt="Overlay"
-                      className="w-6 h-6 object-contain opacity-70"
+                      className="object-contain opacity-70"
+                      style={{ 
+                        width: `${Math.max(16, Math.min(64, overlayScale * 800))}px`, 
+                        height: `${Math.max(16, Math.min(64, overlayScale * 800))}px` 
+                      }}
                     />
                   </div>
                 )}

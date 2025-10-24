@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import OverlaySelector from "./components/OverlaySelector";
 import FileUploader from "./components/FileUploader";
@@ -9,10 +9,30 @@ import FilePreview from "./components/FilePreview";
 export default function Home() {
   const [file, setFile] = useState<File | null>(null);
   const [selectedOverlay, setSelectedOverlay] = useState<string>('none');
-  const [overlayPosition, setOverlayPosition] = useState({ x: 43, y: 28 }); // Initial position
+  
+  // Initial values - single source of truth
+  const initialPosition = { x: 43, y: 28 };
+  const initialScale = 0.08;
+  
+  const [overlayPosition, setOverlayPosition] = useState(initialPosition);
+  const [overlayScale, setOverlayScale] = useState<number>(initialScale);
+
+  // Load default overlay on component mount
+  useEffect(() => {
+    const savedDefaultOverlay = localStorage.getItem('defaultOverlay');
+    if (savedDefaultOverlay) {
+      setSelectedOverlay(savedDefaultOverlay);
+    }
+  }, []);
 
   const handleFileSelect = (selectedFile: File) => {
     setFile(selectedFile);
+    
+    // Apply default overlay when a new file is uploaded
+    const savedDefaultOverlay = localStorage.getItem('defaultOverlay');
+    if (savedDefaultOverlay && savedDefaultOverlay !== 'none') {
+      setSelectedOverlay(savedDefaultOverlay);
+    }
   };
 
   const handleFileReset = () => {
@@ -64,6 +84,11 @@ export default function Home() {
               onOverlayChange={setSelectedOverlay}
               overlayPosition={overlayPosition}
               onPositionChange={setOverlayPosition}
+              overlayScale={overlayScale}
+              onScaleChange={setOverlayScale}
+              onDefaultOverlayChange={setSelectedOverlay}
+              initialPosition={initialPosition}
+              initialScale={initialScale}
             />
           </div>
 
@@ -73,6 +98,7 @@ export default function Home() {
               file={file}
               selectedOverlay={selectedOverlay}
               overlayPosition={overlayPosition}
+              overlayScale={overlayScale}
             />
           </div>
         </div>
