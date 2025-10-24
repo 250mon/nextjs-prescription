@@ -14,23 +14,27 @@ export default function FilePreview({ file, selectedOverlay, overlayPosition, ov
   const [allOverlays, setAllOverlays] = useState<OverlayOption[]>(overlayOptions);
   const [isDownloading, setIsDownloading] = useState(false);
 
-  // Load custom overlays from localStorage
+  // Load custom overlays from server
   useEffect(() => {
-    const customOverlays = localStorage.getItem('customOverlays');
-    if (customOverlays) {
+    const loadOverlays = async () => {
       try {
-        const parsed = JSON.parse(customOverlays);
-        const customOptions: OverlayOption[] = parsed.map((overlay: { id: string; name: string; path: string }) => ({
-          id: overlay.id,
-          name: overlay.name,
-          path: overlay.path,
-          type: 'image' as const
-        }));
-        setAllOverlays([...overlayOptions, ...customOptions]);
+        const response = await fetch('/api/overlays/list');
+        if (response.ok) {
+          const overlays = await response.json();
+          const customOptions: OverlayOption[] = overlays.map((overlay: { id: string; name: string; path: string }) => ({
+            id: overlay.id,
+            name: overlay.name,
+            path: overlay.path,
+            type: 'image' as const
+          }));
+          setAllOverlays([...overlayOptions, ...customOptions]);
+        }
       } catch (error) {
         console.error('Error loading custom overlays:', error);
       }
-    }
+    };
+
+    loadOverlays();
   }, []);
 
   const downloadOverlayedImage = async () => {

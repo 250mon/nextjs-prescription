@@ -6,8 +6,11 @@ import Link from "next/link";
 interface CustomOverlay {
   id: string;
   name: string;
+  fileName: string;
   path: string;
-  uploadedAt: Date;
+  uploadedAt: string;
+  size: number;
+  type: string;
 }
 
 export default function OverlayManagement() {
@@ -16,26 +19,36 @@ export default function OverlayManagement() {
   const [uploadStatus, setUploadStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
-  // Load custom overlays from localStorage on component mount
+  // Load custom overlays from server on component mount
   useEffect(() => {
-    const stored = localStorage.getItem('customOverlays');
-    if (stored) {
+    const loadOverlays = async () => {
       try {
-        const parsed = JSON.parse(stored);
-        setCustomOverlays(parsed.map((overlay: { id: string; name: string; imageUrl: string; uploadedAt: string }) => ({
-          ...overlay,
-          uploadedAt: new Date(overlay.uploadedAt)
-        })));
+        const response = await fetch('/api/overlays/list');
+        if (response.ok) {
+          const overlays = await response.json();
+          setCustomOverlays(overlays);
+        } else {
+          console.error('Failed to load overlays');
+        }
       } catch (error) {
         console.error('Error loading custom overlays:', error);
       }
-    }
+    };
+
+    loadOverlays();
   }, []);
 
-  // Save custom overlays to localStorage
-  const saveCustomOverlays = (overlays: CustomOverlay[]) => {
-    localStorage.setItem('customOverlays', JSON.stringify(overlays));
-    setCustomOverlays(overlays);
+  // Refresh overlays from server
+  const refreshOverlays = async () => {
+    try {
+      const response = await fetch('/api/overlays/list');
+      if (response.ok) {
+        const overlays = await response.json();
+        setCustomOverlays(overlays);
+      }
+    } catch (error) {
+      console.error('Error refreshing overlays:', error);
+    }
   };
 
   const handleFileSelect = (file: File) => {
@@ -52,31 +65,24 @@ export default function OverlayManagement() {
     setUploadStatus('idle');
 
     try {
-      // Create a unique ID and convert file to data URL for storage
-      const fileId = `custom-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-      const reader = new FileReader();
-      
-      reader.onload = (e) => {
-        const dataUrl = e.target?.result as string;
-        const newOverlay: CustomOverlay = {
-          id: fileId,
-          name: selectedFile.name.replace(/\.[^/.]+$/, ""), // Remove file extension
-          path: dataUrl,
-          uploadedAt: new Date()
-        };
+      const formData = new FormData();
+      formData.append('file', selectedFile);
 
-        const updatedOverlays = [...customOverlays, newOverlay];
-        saveCustomOverlays(updatedOverlays);
-        
+      const response = await fetch('/api/overlays/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (response.ok) {
+        const newOverlay = await response.json();
+        setCustomOverlays(prev => [newOverlay, ...prev]);
         setUploadStatus('success');
         setSelectedFile(null);
-      };
-
-      reader.onerror = () => {
+      } else {
+        const error = await response.json();
+        console.error('Upload failed:', error);
         setUploadStatus('error');
-      };
-
-      reader.readAsDataURL(selectedFile);
+      }
     } catch (error) {
       console.error('Error uploading overlay:', error);
       setUploadStatus('error');
@@ -85,9 +91,28 @@ export default function OverlayManagement() {
     }
   };
 
-  const deleteOverlay = (overlayId: string) => {
-    const updatedOverlays = customOverlays.filter(overlay => overlay.id !== overlayId);
-    saveCustomOverlays(updatedOverlays);
+  const deleteOverlay = async (overlayId: string) => {
+    const overlay = customOverlays.find(o => o.id === overlayId);
+    if (!overlay) return;
+
+    try {
+      const response = await fetch('/api/overlays/delete', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ fileName: overlay.fileName }),
+      });
+
+      if (response.ok) {
+        // Remove from local state
+        setCustomOverlays(prev => prev.filter(o => o.id !== overlayId));
+      } else {
+        console.error('Failed to delete overlay');
+      }
+    } catch (error) {
+      console.error('Error deleting overlay:', error);
+    }
   };
 
   return (
@@ -227,9 +252,25 @@ export default function OverlayManagement() {
                 </h2>
                 {customOverlays.length > 0 && (
                   <button
-                    onClick={() => {
+                    onClick={async () => {
                       if (confirm('Are you sure you want to delete all custom overlays?')) {
-                        saveCustomOverlays([]);
+                        // Delete all overlays
+                        const deletePromises = customOverlays.map(overlay => 
+                          fetch('/api/overlays/delete', {
+                            method: 'DELETE',
+                            headers: {
+                              'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({ fileName: overlay.fileName }),
+                          })
+                        );
+                        
+                        try {
+                          await Promise.all(deletePromises);
+                          setCustomOverlays([]);
+                        } catch (error) {
+                          console.error('Error deleting all overlays:', error);
+                        }
                       }
                     }}
                     className="text-sm text-red-600 hover:text-red-700 font-medium"
@@ -266,7 +307,7 @@ export default function OverlayManagement() {
                           {overlay.name}
                         </p>
                         <p className="text-xs text-gray-500">
-                          {overlay.uploadedAt.toLocaleDateString()}
+                          {new Date(overlay.uploadedAt).toLocaleDateString()}
                         </p>
                       </div>
 

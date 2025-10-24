@@ -11,6 +11,7 @@ services:
       - .:/app
       - /app/node_modules
       - /app/.next
+      - ./uploads:/app/public/uploads
     environment:
       - NODE_ENV=development
     command: pnpm run dev
@@ -24,6 +25,8 @@ services:
       dockerfile: Dockerfile
     ports:
       - "13204:3000"
+    volumes:
+      - ./uploads:/app/public/uploads
     environment:
       - NODE_ENV=production
     restart: unless-stopped
@@ -35,6 +38,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    volumes:
+      - ./uploads:/app/public/uploads
     environment:
       - NODE_ENV=production
     restart: unless-stopped

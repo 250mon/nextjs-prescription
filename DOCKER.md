@@ -17,7 +17,8 @@ docker-compose --profile dev up
 This will:
 - Build the app in development mode
 - Mount the source code as a volume for hot reloading
-- Run on port 3000
+- Mount the uploads directory for persistent overlay storage
+- Run on port 13204
 - Enable file watching and automatic restarts
 
 ### Production Mode (Standalone)
@@ -27,7 +28,8 @@ docker-compose --profile prod up
 This will:
 - Build the app for production
 - Run the optimized standalone build
-- Run on port 3000
+- Mount the uploads directory for persistent overlay storage
+- Run on port 13204
 - Use minimal resources
 
 ### Production Mode with Nginx
@@ -36,8 +38,9 @@ docker-compose --profile prod-nginx up
 ```
 This will:
 - Build the app for production
+- Mount the uploads directory for persistent overlay storage
 - Run with nginx reverse proxy
-- Access via port 80 (nginx)
+- Access via port 8081 (nginx)
 - Includes gzip compression and security headers
 
 ## Building and Running
@@ -129,9 +132,28 @@ docker-compose logs -f [service-name]
 - `.dockerignore` - Files to exclude from Docker build context
 - `nginx.conf` - Nginx configuration for production setup
 
+## Volume Mapping
+
+The Docker setup includes volume mapping for persistent storage:
+
+- **Uploads Directory**: `./uploads:/app/public/uploads`
+  - Maps the local `uploads` directory to the container's public uploads folder
+  - Ensures overlay images persist between container restarts
+  - Automatically created if it doesn't exist
+
+### Directory Structure
+```
+uploads/
+└── overlays/
+    ├── overlay-1703123456789-abc123def.jpg
+    ├── overlay-1703123456790-xyz789ghi.png
+    └── ...
+```
+
 ## Performance Notes
 
 - The production build uses Next.js standalone output for optimal performance
 - Nginx setup includes gzip compression and security headers
 - Development mode includes volume mounting for hot reloading
+- Uploads directory is excluded from git via `.gitignore`
 - All builds use Alpine Linux for smaller image sizes
