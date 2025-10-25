@@ -2,38 +2,40 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import OverlaySelector from "./components/OverlaySelector";
+import ImageOverlaySelector from "./components/ImageOverlaySelector";
 import FileUploader from "./components/FileUploader";
 import FilePreview from "./components/FilePreview";
 import TextOverlayManager, { TextOverlay } from "./components/TextOverlayManager";
 
 export default function Home() {
   const [file, setFile] = useState<File | null>(null);
-  const [selectedOverlay, setSelectedOverlay] = useState<string>('none');
+  const [selectedImageOverlay, setSelectedImageOverlay] = useState<string>('none');
   
-  // Initial values - single source of truth
-  const initialPosition = { x: 38, y: 24 };
-  const initialScale = 0.08;
+  // Initial values for image overlay - single source of truth
+  const initialImagePosition = { x: 38, y: 24 };
+  const initialImageScale = 0.08;
   
-  const [overlayPosition, setOverlayPosition] = useState(initialPosition);
-  const [overlayScale, setOverlayScale] = useState<number>(initialScale);
+  // Initial values for text overlay - single source of truth
+  
+  const [imageOverlayPosition, setImageOverlayPosition] = useState(initialImagePosition);
+  const [imageOverlayScale, setImageOverlayScale] = useState<number>(initialImageScale);
   const [textOverlays, setTextOverlays] = useState<TextOverlay[]>([]);
 
-  // Load default overlay on component mount
+  // Load default image overlay on component mount
   useEffect(() => {
     const savedDefaultOverlay = localStorage.getItem('defaultOverlay');
     if (savedDefaultOverlay) {
-      setSelectedOverlay(savedDefaultOverlay);
+      setSelectedImageOverlay(savedDefaultOverlay);
     }
   }, []);
 
   const handleFileSelect = (selectedFile: File) => {
     setFile(selectedFile);
     
-    // Apply default overlay when a new file is uploaded
+    // Apply default image overlay when a new file is uploaded
     const savedDefaultOverlay = localStorage.getItem('defaultOverlay');
     if (savedDefaultOverlay && savedDefaultOverlay !== 'none') {
-      setSelectedOverlay(savedDefaultOverlay);
+      setSelectedImageOverlay(savedDefaultOverlay);
     }
   };
 
@@ -63,10 +65,10 @@ export default function Home() {
               </p>
             </div>
             <Link 
-              href="/overlays"
+              href="/image-overlays"
               className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-xl font-semibold transition-colors duration-200 text-sm"
             >
-              Manage Overlays
+              Manage Image Overlays
             </Link>
           </div>
         </div>
@@ -84,17 +86,17 @@ export default function Home() {
               onFileReset={handleFileReset}
             />
 
-            {/* Overlay Selection */}
-            <OverlaySelector 
-              selectedOverlay={selectedOverlay}
-              onOverlayChange={setSelectedOverlay}
-              overlayPosition={overlayPosition}
-              onPositionChange={setOverlayPosition}
-              overlayScale={overlayScale}
-              onScaleChange={setOverlayScale}
-              onDefaultOverlayChange={setSelectedOverlay}
-              initialPosition={initialPosition}
-              initialScale={initialScale}
+            {/* Image Overlay Selection */}
+            <ImageOverlaySelector 
+              selectedOverlay={selectedImageOverlay}
+              onOverlayChange={setSelectedImageOverlay}
+              overlayPosition={imageOverlayPosition}
+              onPositionChange={setImageOverlayPosition}
+              overlayScale={imageOverlayScale}
+              onScaleChange={setImageOverlayScale}
+              onDefaultOverlayChange={setSelectedImageOverlay}
+              initialPosition={initialImagePosition}
+              initialScale={initialImageScale}
             />
 
             {/* Text Overlay Manager */}
@@ -108,9 +110,9 @@ export default function Home() {
           <div className="lg:col-span-2">
             <FilePreview 
               file={file}
-              selectedOverlay={selectedOverlay}
-              overlayPosition={overlayPosition}
-              overlayScale={overlayScale}
+              selectedOverlay={selectedImageOverlay}
+              overlayPosition={imageOverlayPosition}
+              overlayScale={imageOverlayScale}
               textOverlays={textOverlays}
             />
           </div>
