@@ -41,4 +41,6 @@ yarn-error.log*
 next-env.d.ts
 
 # uploads directory (user-generated content)
-/uploads
+# Keep the directory structure but ignore uploaded files
+/uploads/*
+!/uploads/README.md
