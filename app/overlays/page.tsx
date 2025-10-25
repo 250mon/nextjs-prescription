@@ -38,18 +38,6 @@ export default function OverlayManagement() {
     loadOverlays();
   }, []);
 
-  // Refresh overlays from server
-  const refreshOverlays = async () => {
-    try {
-      const response = await fetch('/api/overlays/list');
-      if (response.ok) {
-        const overlays = await response.json();
-        setCustomOverlays(overlays);
-      }
-    } catch (error) {
-      console.error('Error refreshing overlays:', error);
-    }
-  };
 
   const handleFileSelect = (file: File) => {
     if (file && file.type.startsWith('image/')) {
@@ -164,7 +152,7 @@ export default function OverlayManagement() {
                       const file = e.target.files?.[0];
                       if (file) handleFileSelect(file);
                     }}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-600 focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                   />
                   <p className="text-xs text-gray-500 mt-1">
                     Supports: JPG, PNG, SVG, GIF

@@ -54,21 +54,40 @@ export default function FileUploader({
         Select Prescription
       </h2>
       
-      <div className="space-y-4">
-        {/* Drag and Drop Area */}
-        <div
-          className={`relative border-2 border-dashed rounded-xl p-6 text-center transition-all duration-200 ${
-            isDragOver
-              ? 'border-blue-400 bg-blue-50'
-              : file
-              ? 'border-green-300 bg-green-50'
-              : 'border-gray-300 bg-gray-50 hover:border-blue-300 hover:bg-blue-50'
-          }`}
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          onDrop={handleDrop}
-          onClick={() => fileInputRef.current?.click()}
-        >
+      {file ? (
+        /* Compact File Selected View */
+        <div className="space-y-3">
+          <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+            <div className="flex items-center space-x-3 mb-3">
+              <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-medium text-gray-900 text-sm truncate">{file.name}</p>
+                <p className="text-xs text-gray-500">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+              </div>
+            </div>
+            <div className="flex justify-center space-x-2">
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="px-3 py-1 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors duration-200"
+              >
+                Change
+              </button>
+              <button
+                type="button"
+                onClick={resetFile}
+                className="px-3 py-1 text-xs bg-red-600 hover:bg-red-700 text-white rounded-md transition-colors duration-200"
+              >
+                Remove
+              </button>
+            </div>
+          </div>
+          
+          {/* Hidden file input for change functionality */}
           <input
             ref={fileInputRef}
             type="file"
@@ -79,30 +98,32 @@ export default function FileUploader({
             }}
             className="hidden"
           />
-          
-          {file ? (
-            <div className="space-y-3">
-              <div className="w-12 h-12 mx-auto bg-green-100 rounded-full flex items-center justify-center">
-                <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <div>
-                <p className="font-medium text-gray-900">{file.name}</p>
-                <p className="text-sm text-gray-500">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
-              </div>
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  resetFile();
-                }}
-                className="text-sm text-red-600 hover:text-red-700 underline"
-              >
-                Remove file
-              </button>
-            </div>
-          ) : (
+        </div>
+      ) : (
+        /* Full Drag and Drop Area */
+        <div className="space-y-4">
+          <div
+            className={`relative border-2 border-dashed rounded-xl p-6 text-center transition-all duration-200 ${
+              isDragOver
+                ? 'border-blue-400 bg-blue-50'
+                : 'border-gray-300 bg-gray-50 hover:border-blue-300 hover:bg-blue-50'
+            }`}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+            onClick={() => fileInputRef.current?.click()}
+          >
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*,application/pdf"
+              onChange={e => {
+                const selectedFile = e.target.files?.[0];
+                if (selectedFile) handleFileSelect(selectedFile);
+              }}
+              className="hidden"
+            />
+            
             <div className="space-y-3">
               <div className="w-12 h-12 mx-auto bg-blue-100 rounded-full flex items-center justify-center">
                 <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -118,9 +139,9 @@ export default function FileUploader({
                 </p>
               </div>
             </div>
-          )}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

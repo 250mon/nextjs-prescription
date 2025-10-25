@@ -5,17 +5,19 @@ import Link from "next/link";
 import OverlaySelector from "./components/OverlaySelector";
 import FileUploader from "./components/FileUploader";
 import FilePreview from "./components/FilePreview";
+import TextOverlayManager, { TextOverlay } from "./components/TextOverlayManager";
 
 export default function Home() {
   const [file, setFile] = useState<File | null>(null);
   const [selectedOverlay, setSelectedOverlay] = useState<string>('none');
   
   // Initial values - single source of truth
-  const initialPosition = { x: 43, y: 28 };
+  const initialPosition = { x: 38, y: 24 };
   const initialScale = 0.08;
   
   const [overlayPosition, setOverlayPosition] = useState(initialPosition);
   const [overlayScale, setOverlayScale] = useState<number>(initialScale);
+  const [textOverlays, setTextOverlays] = useState<TextOverlay[]>([]);
 
   // Load default overlay on component mount
   useEffect(() => {
@@ -39,6 +41,10 @@ export default function Home() {
     setFile(null);
   };
 
+  const handleTextOverlaysChange = (newTextOverlays: TextOverlay[]) => {
+    setTextOverlays(newTextOverlays);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
       {/* Header */}
@@ -50,7 +56,7 @@ export default function Home() {
                 Prescription Overlay Tool
               </h1>
               <p className="text-gray-600 mb-2">
-                Add overlays to your prescription images and download them locally
+                Add image overlays and text annotations to your prescription images and download them locally
               </p>
               <p className="text-sm text-gray-500">
                 Accepted formats: JPG, PNG, PDF • All processing happens in your browser
@@ -67,11 +73,11 @@ export default function Home() {
       </div>
 
       {/* Main Content */}
-      <div className="max-w-4xl mx-auto px-6 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
+      <div className="max-w-6xl mx-auto px-6 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
           
-          {/* Upload Section */}
-          <div className="space-y-6">
+          {/* Upload and Overlay Section */}
+          <div className="lg:col-span-1 space-y-6">
             <FileUploader 
               file={file}
               onFileSelect={handleFileSelect}
@@ -90,15 +96,22 @@ export default function Home() {
               initialPosition={initialPosition}
               initialScale={initialScale}
             />
+
+            {/* Text Overlay Manager */}
+            <TextOverlayManager 
+              textOverlays={textOverlays}
+              onTextOverlaysChange={handleTextOverlaysChange}
+            />
           </div>
 
           {/* Preview Section */}
-          <div>
+          <div className="lg:col-span-2">
             <FilePreview 
               file={file}
               selectedOverlay={selectedOverlay}
               overlayPosition={overlayPosition}
               overlayScale={overlayScale}
+              textOverlays={textOverlays}
             />
           </div>
         </div>

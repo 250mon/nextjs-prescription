@@ -2,17 +2,20 @@
 
 import { useState, useEffect } from "react";
 import { overlayOptions, OverlayOption } from "./OverlaySelector";
+import { TextOverlay } from "./TextOverlayManager";
 
 interface FilePreviewProps {
   file: File | null;
   selectedOverlay: string;
   overlayPosition: { x: number; y: number }; // Now represents percentages (0-100)
   overlayScale: number; // Scale factor for overlay size
+  textOverlays: TextOverlay[];
 }
 
-export default function FilePreview({ file, selectedOverlay, overlayPosition, overlayScale }: FilePreviewProps) {
+export default function FilePreview({ file, selectedOverlay, overlayPosition, overlayScale, textOverlays }: FilePreviewProps) {
   const [allOverlays, setAllOverlays] = useState<OverlayOption[]>(overlayOptions);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [imageDimensions, setImageDimensions] = useState<{ width: number; height: number } | null>(null);
 
   // Load custom overlays from server
   useEffect(() => {
@@ -36,6 +39,19 @@ export default function FilePreview({ file, selectedOverlay, overlayPosition, ov
 
     loadOverlays();
   }, []);
+
+  // Get image dimensions when file changes
+  useEffect(() => {
+    if (file && file.type.startsWith('image/')) {
+      const img = new Image();
+      img.onload = () => {
+        setImageDimensions({ width: img.naturalWidth, height: img.naturalHeight });
+      };
+      img.src = URL.createObjectURL(file);
+    } else {
+      setImageDimensions(null);
+    }
+  }, [file]);
 
   const downloadOverlayedImage = async () => {
     if (!file || !file.type.startsWith('image/')) return;
@@ -86,16 +102,34 @@ export default function FilePreview({ file, selectedOverlay, overlayPosition, ov
           const overlaySize = Math.min(mainImage.width, mainImage.height) * overlayScale;
           
           // Draw overlay at calculated position (centered on the coordinate)
-          ctx.globalAlpha = 0.7;
           ctx.drawImage(
             overlayImage, 
-            actualX - overlaySize / 2, // Center horizontally
-            actualY - overlaySize / 2, // Center vertically
+            actualX,
+            actualY,
             overlaySize, 
             overlaySize
           );
-          ctx.globalAlpha = 1.0;
         }
+      }
+
+      // Draw text overlays
+      if (textOverlays.length > 0) {
+        textOverlays.forEach(textOverlay => {
+          ctx.save();
+          ctx.globalAlpha = textOverlay.opacity;
+          ctx.fillStyle = textOverlay.color;
+          ctx.font = `${textOverlay.fontWeight} ${textOverlay.fontSize}px ${textOverlay.fontFamily}`;
+          ctx.textAlign = 'left';
+          ctx.textBaseline = 'middle';
+
+          // Convert percentage coordinates to actual image coordinates
+          const actualX = (textOverlay.x / 100) * mainImage.width;
+          const actualY = (textOverlay.y / 100) * mainImage.height;
+
+          // Draw text
+          ctx.fillText(textOverlay.text, actualX, actualY);
+          ctx.restore();
+        });
       }
 
       // Download the composed image
@@ -167,13 +201,19 @@ export default function FilePreview({ file, selectedOverlay, overlayPosition, ov
       ) : (
         <div className="space-y-4">
           {/* Preview Container */}
-          <div className="aspect-[4/3] bg-gray-50 rounded-xl overflow-hidden border-2 border-gray-200 relative" data-preview-container>
+          <div 
+            className="bg-gray-50 rounded-xl overflow-hidden border-2 border-gray-200 relative" 
+            data-preview-container
+            style={{
+              aspectRatio: imageDimensions ? `${imageDimensions.width} / ${imageDimensions.height}` : '4 / 3'
+            }}
+          >
             {file.type.startsWith('image/') ? (
               <>
                 <img 
                   src={URL.createObjectURL(file)} 
                   alt="Prescription preview" 
-                  className="w-full h-full object-contain"
+                  className="w-full h-full object-cover"
                 />
                 {/* Selected overlay */}
                 {selectedOverlay !== 'none' && (
@@ -183,13 +223,13 @@ export default function FilePreview({ file, selectedOverlay, overlayPosition, ov
                       left: `${overlayPosition.x}%`, 
                       top: `${overlayPosition.y}%`,
                       pointerEvents: 'none',
-                      transform: 'translate(0%, -50%)' // Center the overlay on the position
+                      transform: 'translate(0%, 0%)' // Center the overlay on the position
                     }}
                   >
                     <img 
                       src={allOverlays.find(opt => opt.id === selectedOverlay)?.path}
                       alt="Overlay"
-                      className="object-contain opacity-70"
+                      className="object-contain opacity-100"
                       style={{ 
                         width: `${Math.max(16, Math.min(64, overlayScale * 800))}px`, 
                         height: `${Math.max(16, Math.min(64, overlayScale * 800))}px` 
@@ -197,6 +237,29 @@ export default function FilePreview({ file, selectedOverlay, overlayPosition, ov
                     />
                   </div>
                 )}
+                
+                {/* Text overlays */}
+                {textOverlays.map((textOverlay) => (
+                  <div
+                    key={textOverlay.id}
+                    className="absolute pointer-events-none"
+                    style={{
+                      left: `${textOverlay.x}%`,
+                      top: `${textOverlay.y}%`,
+                      transform: 'translate(0%, 0%)',
+                      color: textOverlay.color,
+                      fontSize: `${Math.max(8, Math.min(24, textOverlay.fontSize * 0.7))}px`,
+                      fontFamily: textOverlay.fontFamily,
+                      fontWeight: textOverlay.fontWeight,
+                      opacity: textOverlay.opacity,
+                      textAlign: 'center',
+                      whiteSpace: 'nowrap',
+                      textShadow: '1px 1px 2px rgba(0,0,0,0.5)',
+                    }}
+                  >
+                    {textOverlay.text}
+                  </div>
+                ))}
               </>
             ) : (
               <div className="w-full h-full flex items-center justify-center relative">
@@ -215,13 +278,13 @@ export default function FilePreview({ file, selectedOverlay, overlayPosition, ov
                       left: `${overlayPosition.x}%`, 
                       top: `${overlayPosition.y}%`,
                       pointerEvents: 'none',
-                      transform: 'translate(0%, -50%)' // Center the overlay on the position
+                      transform: 'translate(0%, 0%)' // Center the overlay on the position
                     }}
                   >
                     <img 
                       src={allOverlays.find(opt => opt.id === selectedOverlay)?.path}
                       alt="Overlay"
-                      className="object-contain opacity-70"
+                      className="object-contain opacity-100"
                       style={{ 
                         width: `${Math.max(16, Math.min(64, overlayScale * 800))}px`, 
                         height: `${Math.max(16, Math.min(64, overlayScale * 800))}px` 
@@ -229,6 +292,29 @@ export default function FilePreview({ file, selectedOverlay, overlayPosition, ov
                     />
                   </div>
                 )}
+                
+                {/* Text overlays for PDF */}
+                {textOverlays.map((textOverlay) => (
+                  <div
+                    key={textOverlay.id}
+                    className="absolute pointer-events-none"
+                    style={{
+                      left: `${textOverlay.x}%`,
+                      top: `${textOverlay.y}%`,
+                      transform: 'translate(0%, 0%)',
+                      color: textOverlay.color,
+                      fontSize: `${Math.max(8, Math.min(24, textOverlay.fontSize)) * 0.5}px`,
+                      fontFamily: textOverlay.fontFamily,
+                      fontWeight: textOverlay.fontWeight,
+                      opacity: textOverlay.opacity,
+                      textAlign: 'center',
+                      whiteSpace: 'nowrap',
+                      textShadow: '1px 1px 2px rgba(0,0,0,0.5)',
+                    }}
+                  >
+                    {textOverlay.text}
+                  </div>
+                ))}
               </div>
             )}
           </div>
