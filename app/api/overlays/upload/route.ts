@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { writeFile } from 'fs/promises';
 import { join } from 'path';
+import { mkdir } from 'fs/promises';
 
 export async function POST(request: NextRequest) {
   try {
@@ -18,6 +19,13 @@ export async function POST(request: NextRequest) {
 
     // Create uploads directory if it doesn't exist
     const uploadsDir = join(process.cwd(), 'public', 'uploads', 'overlays');
+    
+    try {
+      await mkdir(uploadsDir, { recursive: true });
+    } catch (error) {
+      // Directory might already exist, which is fine
+      console.log('Directory creation info:', error);
+    }
 
     // Generate unique filename
     const timestamp = Date.now();
