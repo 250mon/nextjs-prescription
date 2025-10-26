@@ -26,7 +26,7 @@ services:
     ports:
       - "13204:3000"
     volumes:
-      - ./uploads:/app/public/uploads
+      - uploads_data:/app/public/uploads
     environment:
       - NODE_ENV=production
     restart: unless-stopped
@@ -39,7 +39,7 @@ services:
       context: .
       dockerfile: Dockerfile
     volumes:
-      - ./uploads:/app/public/uploads
+      - uploads_data:/app/public/uploads
     environment:
       - NODE_ENV=production
     restart: unless-stopped
@@ -57,3 +57,7 @@ services:
       - app-prod
     profiles:
       - prod-nginx
+
+# Named volumes for persistent data
+volumes:
+  uploads_data:
