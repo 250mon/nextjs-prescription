@@ -42,8 +42,4 @@ next-env.d.ts
 
 # uploads directory (user-generated content)
 # Keep the directory structure but ignore uploaded files
-/uploads/*
-!/uploads/README.md
-!/uploads/overlays/
-/uploads/overlays/*
-!/uploads/overlays/README.md
+/uploads
