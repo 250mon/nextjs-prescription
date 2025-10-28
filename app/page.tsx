@@ -57,9 +57,6 @@ export default function Home() {
               <h1 className="text-3xl font-bold text-gray-900 mb-2">
                 Prescription Overlay Tool
               </h1>
-              <p className="text-gray-600 mb-2">
-                Add image overlays and text annotations to your prescription images and download them locally
-              </p>
               <p className="text-sm text-gray-500">
                 Accepted formats: JPG, PNG, PDF • All processing happens in your browser
               </p>
