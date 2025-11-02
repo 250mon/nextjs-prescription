@@ -3,6 +3,8 @@ import { writeFile } from 'fs/promises';
 import { join } from 'path';
 import { mkdir } from 'fs/promises';
 
+const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH || '';
+
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
@@ -24,7 +26,6 @@ export async function POST(request: NextRequest) {
       await mkdir(uploadsDir, { recursive: true });
     } catch (error) {
       // Directory might already exist, which is fine
-      console.log('Directory creation info:', error);
     }
 
     // Generate unique filename
@@ -44,7 +45,7 @@ export async function POST(request: NextRequest) {
       id: `custom-${timestamp}-${randomId}`,
       name: file.name.replace(/\.[^/.]+$/, ""), // Remove file extension
       fileName: fileName,
-      path: `/uploads/overlays/${fileName}`,
+      path: `${BASE_PATH}/uploads/overlays/${fileName}`,
       uploadedAt: new Date().toISOString(),
       size: file.size,
       type: file.type

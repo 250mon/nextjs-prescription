@@ -9,6 +9,7 @@ import ImagePreview from "./file-preview/ImagePreview";
 import PDFPreview from "./file-preview/PDFPreview";
 import FileDetails from "./file-preview/FileDetails";
 import { downloadOverlayedImage } from "./file-preview/imageDownloadUtils";
+import { getApiUrl } from "../lib/api";
 
 interface FilePreviewProps {
   file: File | null;
@@ -27,7 +28,7 @@ export default function FilePreview({ file, selectedOverlay, overlayPosition, ov
   useEffect(() => {
     const loadOverlays = async () => {
       try {
-        const response = await fetch('/api/overlays/list');
+        const response = await fetch(getApiUrl('/api/overlays/list'));
         if (response.ok) {
           const overlays = await response.json();
           const customOptions: ImageOverlayOption[] = overlays.map((overlay: { id: string; name: string; path: string }) => ({

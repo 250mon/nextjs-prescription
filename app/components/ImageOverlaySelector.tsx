@@ -5,6 +5,7 @@ import ImageOverlayGrid from "./image-overlay-selector/ImageOverlayGrid";
 import DefaultOverlayInfo from "./image-overlay-selector/DefaultOverlayInfo";
 import ImageOverlaySettings from "./image-overlay-selector/ImageOverlaySettings";
 import { ImageOverlayOption, ImageOverlaySelectorProps } from "./image-overlay-selector/types";
+import { getApiUrl } from "../lib/api";
 
 // Re-export for backward compatibility
 export type { ImageOverlayOption } from "./image-overlay-selector/types";
@@ -21,7 +22,7 @@ export default function ImageOverlaySelector({ selectedOverlay, onOverlayChange,
   useEffect(() => {
     const loadOverlays = async () => {
       try {
-        const response = await fetch('/api/overlays/list');
+        const response = await fetch(getApiUrl('/api/overlays/list'));
         if (response.ok) {
           const overlays = await response.json();
           const customOptions: ImageOverlayOption[] = overlays.map((overlay: { id: string; name: string; path: string }) => ({

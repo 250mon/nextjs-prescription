@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { readdir, stat } from 'fs/promises';
 import { join } from 'path';
 
+const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH || '';
+
 export async function GET() {
   try {
     const uploadsDir = join(process.cwd(), 'public', 'uploads', 'overlays');
@@ -37,7 +39,7 @@ export async function GET() {
           id,
           name,
           fileName: file,
-          path: `/uploads/overlays/${file}`,
+          path: `${BASE_PATH}/uploads/overlays/${file}`,
           uploadedAt: new Date(stats.birthtime).toISOString(),
           size: stats.size,
           type: `image/${file.split('.').pop()}`

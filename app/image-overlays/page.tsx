@@ -6,6 +6,7 @@ import ImageOverlayUploader from "../components/image-overlays/ImageOverlayUploa
 import ImageOverlayGallery from "../components/image-overlays/ImageOverlayGallery";
 import ImageOverlayInstructions from "../components/image-overlays/ImageOverlayInstructions";
 import { CustomImageOverlay, UploadStatus } from "../components/types";
+import { getApiUrl } from "../lib/api";
 
 export default function ImageOverlayManagement() {
   const [customOverlays, setCustomOverlays] = useState<CustomImageOverlay[]>([]);
@@ -16,7 +17,7 @@ export default function ImageOverlayManagement() {
   useEffect(() => {
     const loadOverlays = async () => {
       try {
-        const response = await fetch('/api/overlays/list');
+        const response = await fetch(getApiUrl('/api/overlays/list'));
         if (response.ok) {
           const overlays = await response.json();
           setCustomOverlays(overlays);
@@ -40,7 +41,7 @@ export default function ImageOverlayManagement() {
       const formData = new FormData();
       formData.append('file', file);
 
-      const response = await fetch('/api/overlays/upload', {
+      const response = await fetch(getApiUrl('/api/overlays/upload'), {
         method: 'POST',
         body: formData,
       });
@@ -67,7 +68,7 @@ export default function ImageOverlayManagement() {
     if (!overlay) return;
 
     try {
-      const response = await fetch('/api/overlays/delete', {
+      const response = await fetch(getApiUrl('/api/overlays/delete'), {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
@@ -94,7 +95,7 @@ export default function ImageOverlayManagement() {
     if (confirm('Are you sure you want to delete all custom overlays?')) {
       // Delete all overlays
       const deletePromises = customOverlays.map(overlay => 
-        fetch('/api/overlays/delete', {
+        fetch(getApiUrl('/api/overlays/delete'), {
           method: 'DELETE',
           headers: {
             'Content-Type': 'application/json',
