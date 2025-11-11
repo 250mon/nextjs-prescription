@@ -8,6 +8,10 @@ const nextConfig: NextConfig = {
   output: 'standalone',
   // Ensure static files are served in production
   trailingSlash: false,
+
+  // Mount the app at the base path
+  basePath: BASE_PATH || undefined,
+  
   // Add custom server configuration for static files
   async rewrites() {
     return [
@@ -17,8 +21,7 @@ const nextConfig: NextConfig = {
       },
     ];
   },
-  // basePath automatically prefixes all assets, routes, and static files
-  basePath: BASE_PATH || undefined,
+
   images: {
     // basePath automatically handles image paths
     // add domains: ['...'] if you load remote images
