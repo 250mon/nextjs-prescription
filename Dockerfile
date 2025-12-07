@@ -17,8 +17,19 @@ RUN if [ -f pnpm-lock.yaml ]; then pnpm install --frozen-lockfile; else pnpm ins
 # Rebuild the source code only when needed
 FROM base AS builder
 WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
+# This is commented out because of the issue with the dependencies.
+# "Error: Cannot find module '../lightningcss.linux-arm-musl.node'"
+# COPY --from=deps /app/node_modules ./node_modules
+# COPY . .
+# 1. Copy package files (NOT node_modules yet)
+COPY package.json pnpm-lock.yaml* ./
+# 2. Copy source code
 COPY . .
+# 3. CRITICAL: Set CI=true to stop pnpm from asking for confirmation
+ENV CI=true
+# 4. RUN INSTALL AGAIN! This is the key fix.
+# It ensures the environment for the build has the correct binaries.
+RUN if [ -f pnpm-lock.yaml ]; then pnpm install --frozen-lockfile; else pnpm install; fi
 
 # Next.js collects completely anonymous telemetry data about general usage.
 # Learn more here: https://nextjs.org/telemetry
