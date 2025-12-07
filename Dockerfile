@@ -1,5 +1,6 @@
 # Use the official Node.js 18 image as the base image
-FROM node:18-alpine AS base
+# FROM node:18-alpine AS base
+FROM node:22-slim AS base
 
 # Install pnpm
 RUN npm install -g pnpm
@@ -7,7 +8,6 @@ RUN npm install -g pnpm
 # Install dependencies only when needed
 FROM base AS deps
 # Check https://github.com/nodejs/docker-node/tree/b4117f9333da4138b03a546ec926ef50a31506c3#nodealpine to understand why libc6-compat might be needed.
-RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
 # Install dependencies based on the preferred package manager
@@ -17,19 +17,8 @@ RUN if [ -f pnpm-lock.yaml ]; then pnpm install --frozen-lockfile; else pnpm ins
 # Rebuild the source code only when needed
 FROM base AS builder
 WORKDIR /app
-# This is commented out because of the issue with the dependencies.
-# "Error: Cannot find module '../lightningcss.linux-arm-musl.node'"
-# COPY --from=deps /app/node_modules ./node_modules
-# COPY . .
-# 1. Copy package files (NOT node_modules yet)
-COPY package.json pnpm-lock.yaml* ./
-# 2. Copy source code
+COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-# 3. CRITICAL: Set CI=true to stop pnpm from asking for confirmation
-ENV CI=true
-# 4. RUN INSTALL AGAIN! This is the key fix.
-# It ensures the environment for the build has the correct binaries.
-RUN if [ -f pnpm-lock.yaml ]; then pnpm install --frozen-lockfile; else pnpm install; fi
 
 # Next.js collects completely anonymous telemetry data about general usage.
 # Learn more here: https://nextjs.org/telemetry
