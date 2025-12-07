@@ -4,7 +4,9 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-      target: deps
+      target: dev
+      args:
+        - NEXT_PUBLIC_BASE_PATH=${NEXT_PUBLIC_BASE_PATH:-/prescription}
     ports:
       - "13204:3000"
     volumes:
@@ -13,50 +15,29 @@ services:
       - /app/.next
       - ./uploads:/app/public/uploads
     environment:
-      - NODE_ENV=development
+      NODE_ENV: ${NODE_ENV:-development}
+      NEXT_PUBLIC_BASE_PATH: ${NEXT_PUBLIC_BASE_PATH:-/prescription}
     command: pnpm run dev
     profiles:
       - dev
 
   # Production service
-  app:
+  app-prod:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        - NEXT_PUBLIC_BASE_PATH=${NEXT_PUBLIC_BASE_PATH:-/prescription}
     ports:
       - "13204:3000"
     volumes:
       - uploads_data:/app/public/uploads
     environment:
-      - NODE_ENV=production
+      NODE_ENV: ${NODE_ENV:-production}
+      NEXT_PUBLIC_BASE_PATH: ${NEXT_PUBLIC_BASE_PATH:-/prescription}
     restart: unless-stopped
     profiles:
       - prod
-
-  # Production service with nginx reverse proxy
-  app-prod:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    volumes:
-      - uploads_data:/app/public/uploads
-    environment:
-      - NODE_ENV=production
-    restart: unless-stopped
-    profiles:
-      - prod-nginx
-
-  nginx:
-    image: nginx:alpine
-    ports:
-      - "8081:8081"
-      - "443:443"
-    volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf:ro
-    depends_on:
-      - app-prod
-    profiles:
-      - prod-nginx
 
 # Named volumes for persistent data
 volumes:

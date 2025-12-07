@@ -17,8 +17,14 @@ RUN if [ -f pnpm-lock.yaml ]; then pnpm install --frozen-lockfile; else pnpm ins
 # Rebuild the source code only when needed
 FROM base AS builder
 WORKDIR /app
+
+# Copy the dependencies from the deps stage
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+
+# Accept the base path from the arguments (needed at build time for next.config.ts)
+ARG NEXT_PUBLIC_BASE_PATH
+ENV NEXT_PUBLIC_BASE_PATH=${NEXT_PUBLIC_BASE_PATH:-/prescription}
 
 # Next.js collects completely anonymous telemetry data about general usage.
 # Learn more here: https://nextjs.org/telemetry
@@ -30,6 +36,10 @@ RUN pnpm run build
 # Production image, copy all the files and run next
 FROM base AS runner
 WORKDIR /app
+
+# Accept the base path from the arguments (needed at runtime)
+ARG NEXT_PUBLIC_BASE_PATH
+ENV NEXT_PUBLIC_BASE_PATH=${NEXT_PUBLIC_BASE_PATH:-/prescription}
 
 ENV NODE_ENV production
 # Uncomment the following line in case you want to disable telemetry during runtime.
