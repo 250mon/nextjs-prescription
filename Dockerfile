@@ -58,6 +58,10 @@ RUN pnpm run build
 FROM base AS runner
 WORKDIR /app
 
+# Accept the base path from the arguments (needed at runtime)
+ARG NEXT_PUBLIC_BASE_PATH
+ENV NEXT_PUBLIC_BASE_PATH=${NEXT_PUBLIC_BASE_PATH:-/prescription}
+
 ENV NODE_ENV production
 # Uncomment the following line in case you want to disable telemetry during runtime.
 ENV NEXT_TELEMETRY_DISABLED 1
