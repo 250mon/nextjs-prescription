@@ -1,5 +1,4 @@
-# Use the official Node.js 18 image as the base image
-# FROM node:18-alpine AS base
+# Use the official Node.js 22 slim image as the base image
 FROM node:22-slim AS base
 
 # Install pnpm
@@ -7,12 +6,38 @@ RUN npm install -g pnpm
 
 # Install dependencies only when needed
 FROM base AS deps
-# Check https://github.com/nodejs/docker-node/tree/b4117f9333da4138b03a546ec926ef50a31506c3#nodealpine to understand why libc6-compat might be needed.
 WORKDIR /app
 
 # Install dependencies based on the preferred package manager
 COPY package.json pnpm-lock.yaml* ./
 RUN if [ -f pnpm-lock.yaml ]; then pnpm install --frozen-lockfile; else pnpm install; fi
+
+# Stage 3: Development
+FROM base AS dev
+WORKDIR /app
+
+# Set CI=true to prevent pnpm from asking for confirmation
+ENV CI=true
+
+# Copy dependencies from deps stage
+COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/package.json ./package.json
+COPY --from=deps /app/pnpm-lock.yaml* ./
+
+# Copy source code (will be mounted as volume in docker-compose, but needed for initial setup)
+COPY . .
+
+# Development environment variables
+ENV NODE_ENV=development
+ENV NEXT_TELEMETRY_DISABLED=1
+
+EXPOSE 3000
+
+ENV PORT=3000
+ENV HOSTNAME="0.0.0.0"
+
+# Run dev server with hot reload
+CMD ["pnpm", "dev"]
 
 # Rebuild the source code only when needed
 FROM base AS builder
@@ -21,10 +46,6 @@ WORKDIR /app
 # Copy the dependencies from the deps stage
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-
-# Accept the base path from the arguments (needed at build time for next.config.ts)
-ARG NEXT_PUBLIC_BASE_PATH
-ENV NEXT_PUBLIC_BASE_PATH=${NEXT_PUBLIC_BASE_PATH:-/prescription}
 
 # Next.js collects completely anonymous telemetry data about general usage.
 # Learn more here: https://nextjs.org/telemetry
@@ -36,10 +57,6 @@ RUN pnpm run build
 # Production image, copy all the files and run next
 FROM base AS runner
 WORKDIR /app
-
-# Accept the base path from the arguments (needed at runtime)
-ARG NEXT_PUBLIC_BASE_PATH
-ENV NEXT_PUBLIC_BASE_PATH=${NEXT_PUBLIC_BASE_PATH:-/prescription}
 
 ENV NODE_ENV production
 # Uncomment the following line in case you want to disable telemetry during runtime.

@@ -3,8 +3,6 @@ import { writeFile } from 'fs/promises';
 import { join } from 'path';
 import { mkdir } from 'fs/promises';
 
-const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH || '';
-
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
@@ -45,7 +43,7 @@ export async function POST(request: NextRequest) {
       id: `custom-${timestamp}-${randomId}`,
       name: file.name.replace(/\.[^/.]+$/, ""), // Remove file extension
       fileName: fileName,
-      path: `${BASE_PATH}/uploads/overlays/${fileName}`,
+      path: `/uploads/overlays/${fileName}`,
       uploadedAt: new Date().toISOString(),
       size: file.size,
       type: file.type

@@ -1,12 +1,11 @@
 services:
   # Development service
   app-dev:
+    container_name: nextjs-prescription-dev
     build:
       context: .
       dockerfile: Dockerfile
       target: dev
-      args:
-        - NEXT_PUBLIC_BASE_PATH=${NEXT_PUBLIC_BASE_PATH:-/prescription}
     ports:
       - "13204:3000"
     volumes:
@@ -15,30 +14,30 @@ services:
       - /app/.next
       - ./uploads:/app/public/uploads
     environment:
-      NODE_ENV: ${NODE_ENV:-development}
-      NEXT_PUBLIC_BASE_PATH: ${NEXT_PUBLIC_BASE_PATH:-/prescription}
-    command: pnpm run dev
+      - NODE_ENV=development
+       # Enable polling for file watching (required for hot reload in Docker)
+      - WATCHPACK_POLLING=${WATCHPACK_POLLING:-true}
+      - CHOKIDAR_USEPOLLING=${CHOKIDAR_USEPOLLING:-true}
+    # command: pnpm run dev
     profiles:
       - dev
 
   # Production service
   app-prod:
+    image: lambki/nextjs-prescription:latest
+    container_name: nextjs-prescription
     build:
       context: .
       dockerfile: Dockerfile
-      args:
-        - NEXT_PUBLIC_BASE_PATH=${NEXT_PUBLIC_BASE_PATH:-/prescription}
     ports:
       - "13204:3000"
     volumes:
       - uploads_data:/app/public/uploads
     environment:
       NODE_ENV: ${NODE_ENV:-production}
-      NEXT_PUBLIC_BASE_PATH: ${NEXT_PUBLIC_BASE_PATH:-/prescription}
     restart: unless-stopped
     profiles:
       - prod
 
-# Named volumes for persistent data
 volumes:
   uploads_data:

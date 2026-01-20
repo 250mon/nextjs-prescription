@@ -1,28 +1,24 @@
 /**
- * Utility functions for API calls that respect the basePath configuration
+ * Utility functions for API calls
  */
 
-const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH || '';
-
 /**
- * Builds an API URL with the basePath prefix
+ * Builds an API URL
  * @param path - The API path (e.g., '/api/overlays/list')
- * @returns The full URL with basePath (e.g., '/prescription/api/overlays/list')
+ * @returns The normalized URL path
  */
 export function getApiUrl(path: string): string {
   // Ensure path starts with /
-  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
-  return `${BASE_PATH}${normalizedPath}`;
+  return path.startsWith('/') ? path : `/${path}`;
 }
 
 /**
- * Builds a static file URL with the basePath prefix
+ * Builds a static file URL
  * @param path - The static file path (e.g., '/uploads/overlays/image.png')
- * @returns The full URL with basePath (e.g., '/prescription/uploads/overlays/image.png')
+ * @returns The normalized URL path
  */
 export function getStaticUrl(path: string): string {
   // Ensure path starts with /
-  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
-  return `${BASE_PATH}${normalizedPath}`;
+  return path.startsWith('/') ? path : `/${path}`;
 }
 
