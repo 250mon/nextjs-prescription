@@ -8,6 +8,8 @@ services:
       target: dev
     ports:
       - "13204:3000"
+    networks:
+      - my-shared-proxy-net
     volumes:
       - .:/app
       - /app/node_modules
@@ -15,7 +17,7 @@ services:
       - ./uploads:/app/public/uploads
     environment:
       - NODE_ENV=development
-       # Enable polling for file watching (required for hot reload in Docker)
+        # Enable polling for file watching (required for hot reload in Docker)
       - WATCHPACK_POLLING=${WATCHPACK_POLLING:-true}
       - CHOKIDAR_USEPOLLING=${CHOKIDAR_USEPOLLING:-true}
     # command: pnpm run dev
@@ -31,6 +33,8 @@ services:
       dockerfile: Dockerfile
     ports:
       - "13204:3000"
+    networks:
+      - my-shared-proxy-net
     volumes:
       - uploads_data:/app/public/uploads
     environment:
@@ -41,3 +45,8 @@ services:
 
 volumes:
   uploads_data:
+
+networks:
+  my-shared-proxy-net:
+    external: true
+
