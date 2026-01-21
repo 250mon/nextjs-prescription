@@ -1,7 +1,7 @@
 services:
   # Development service
   app-dev:
-    container_name: nextjs-prescription-dev
+    container_name: prescription-app-dev
     build:
       context: .
       dockerfile: Dockerfile
@@ -26,8 +26,8 @@ services:
 
   # Production service
   app-prod:
-    image: lambki/nextjs-prescription:latest
-    container_name: nextjs-prescription
+    image: lambki/prescription-app-prod:latest
+    container_name: prescription-app-prod
     build:
       context: .
       dockerfile: Dockerfile
@@ -49,4 +49,3 @@ volumes:
 networks:
   my-shared-proxy-net:
     external: true
-
